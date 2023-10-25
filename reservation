@@ -1,0 +1,143 @@
+#include <stdio.h>
+#include <string.h>
+
+#define TOTAL_BERTHS 63
+#define TOTAL_RAC_BERTHS 9
+#define TOTAL_WAITING_BERTHS 10
+
+// Data structure to store passenger details
+struct Passenger {
+    char name[50];
+    int age;
+    char gender;
+    char berth_preference;
+};
+
+// Arrays to store booked, RAC, and waiting-list tickets
+struct Passenger booked[TOTAL_BERTHS];
+struct Passenger rac[TOTAL_RAC_BERTHS];
+struct Passenger waiting[TOTAL_WAITING_BERTHS];
+
+// Counters for booked, RAC, and waiting-list tickets
+int booked_count = 0;
+int rac_count = 0;
+int waiting_count = 0;
+
+// Function to check if a person is eligible for lower berth
+int isEligibleForLowerBerth(int age, char gender) {
+    return age > 60 || (age >= 5 && gender == 'F');
+}
+
+// Function to book a ticket
+void bookTicket() {
+    if (booked_count < TOTAL_BERTHS) {
+        struct Passenger passenger;
+        printf("Enter passenger details:\n");
+        printf("Name: ");
+        scanf("%s", passenger.name);
+        printf("Age: ");
+        scanf("%d", &passenger.age);
+        printf("Gender (M/F): ");
+        scanf(" %c", &passenger.gender);
+        printf("Berth Preference (U/L/S): ");
+        scanf(" %c", &passenger.berth_preference);
+
+        if (passenger.age < 5) {
+            printf("Ticket cannot be allocated for children below age 5.\n");
+        } else if (booked_count < TOTAL_BERTHS) {
+            if (isEligibleForLowerBerth(passenger.age, passenger.gender)) {
+                booked[booked_count++] = passenger;
+            } else if (rac_count < TOTAL_RAC_BERTHS) {
+                rac[rac_count++] = passenger;
+            } else if (waiting_count < TOTAL_WAITING_BERTHS) {
+                waiting[waiting_count++] = passenger;
+            } else {
+                printf("No tickets available.\n");
+            }
+        }
+    } else {
+        printf("All tickets are booked.\n");
+    }
+}
+
+// Function to cancel a ticket
+void cancelTicket() {
+    if (booked_count > 0) {
+        struct Passenger canceled_ticket = booked[0];
+        for (int i = 1; i < booked_count; i++) {
+            booked[i - 1] = booked[i];
+        }
+        booked_count--;
+
+        if (rac_count > 0) {
+            booked[booked_count++] = rac[0];
+            for (int i = 1; i < rac_count; i++) {
+                rac[i - 1] = rac[i];
+            }
+            rac_count--;
+
+            if (waiting_count > 0) {
+                rac[rac_count++] = waiting[0];
+                for (int i = 1; i < waiting_count; i++) {
+                    waiting[i - 1] = waiting[i];
+                }
+                waiting_count--;
+            }
+        }
+
+        printf("Ticket for passenger %s is canceled.\n", canceled_ticket.name);
+    } else {
+        printf("No booked tickets to cancel.\n");
+    }
+}
+
+// Function to print booked tickets
+void printBookedTickets() {
+    printf("Booked Tickets:\n");
+    for (int i = 0; i < booked_count; i++) {
+        printf("Name: %s, Age: %d, Gender: %c, Berth Preference: %c\n", booked[i].name, booked[i].age, booked[i].gender, booked[i].berth_preference);
+    }
+    printf("Total booked tickets: %d\n", booked_count);
+}
+
+// Function to print available tickets
+void printAvailableTickets() {
+    printf("Available Tickets:\n");
+    printf("Total available tickets: %d\n", TOTAL_BERTHS - booked_count);
+}
+
+int main() {
+    int choice;
+    do {
+        printf("Railway Ticket Reservation System\n");
+        printf("1. Book Ticket\n");
+        printf("2. Cancel Ticket\n");
+        printf("3. Print Booked Tickets\n");
+        printf("4. Print Available Tickets\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                bookTicket();
+                break;
+            case 2:
+                cancelTicket();
+                break;
+            case 3:
+                printBookedTickets();
+                break;
+            case 4:
+                printAvailableTickets();
+                break;
+            case 5:
+                printf("Thank you for using the Railway Ticket Reservation System.\n");
+                break;
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    } while (choice != 5);
+
+    return 0;
+}
